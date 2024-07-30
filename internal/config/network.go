@@ -4,11 +4,8 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"math/big"
-	"slices"
-	"strings"
 	"sync"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	vaultapi "github.com/hashicorp/vault/api"
@@ -34,16 +31,11 @@ type ethereum struct {
 	getter kv.Getter
 }
 
-type whitelist []string
-
 type RelayerConfig struct {
-	RPC                     *ethclient.Client
-	RegistrationAddress     common.Address
-	LightweightStateAddress *common.Address
-	ChainID                 *big.Int
-	PrivateKey              *ecdsa.PrivateKey
-	WhiteList               whitelist
-	nonce                   uint64
+	RPC        *ethclient.Client
+	ChainID    *big.Int
+	PrivateKey *ecdsa.PrivateKey
+	nonce      uint64
 
 	mut *sync.Mutex
 }
@@ -53,13 +45,10 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 		var result RelayerConfig
 
 		networkConfig := struct {
-			RPC                     *ethclient.Client `fig:"rpc,required"`
-			RegistrationAddress     common.Address    `fig:"registration,required"`
-			LightweightStateAddress *common.Address   `fig:"lightweight_state"`
-			PrivateKey              *ecdsa.PrivateKey `fig:"private_key"`
-			VaultAddress            string            `fig:"vault_address"`
-			VaultMountPath          string            `fig:"vault_mount_path"`
-			WhiteList               []string          `fig:"whitelist"`
+			RPC            *ethclient.Client `fig:"rpc,required"`
+			PrivateKey     *ecdsa.PrivateKey `fig:"private_key"`
+			VaultAddress   string            `fig:"vault_address"`
+			VaultMountPath string            `fig:"vault_mount_path"`
 		}{}
 		err := figure.
 			Out(&networkConfig).
@@ -71,8 +60,6 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 		}
 
 		result.RPC = networkConfig.RPC
-		result.RegistrationAddress = networkConfig.RegistrationAddress
-		result.LightweightStateAddress = networkConfig.LightweightStateAddress
 
 		result.ChainID, err = result.RPC.ChainID(context.Background())
 		if err != nil {
@@ -87,16 +74,6 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 		result.nonce, err = result.RPC.NonceAt(context.Background(), crypto.PubkeyToAddress(result.PrivateKey.PublicKey), nil)
 		if err != nil {
 			panic(errors.Wrap(err, "failed to get nonce"))
-		}
-
-		result.WhiteList = make(whitelist, 0, len(networkConfig.WhiteList))
-		for _, address := range networkConfig.WhiteList {
-			address = strings.ToLower(address)
-			if result.WhiteList.IsPresent(address) {
-				continue
-			}
-
-			result.WhiteList = append(result.WhiteList, address)
 		}
 
 		result.mut = &sync.Mutex{}
@@ -168,8 +145,4 @@ func extractPrivateKey(vaultAddress, vaultMountPath string) *ecdsa.PrivateKey {
 	}
 
 	return vaultRelayerConf.PrivateKey
-}
-
-func (w whitelist) IsPresent(address string) bool {
-	return slices.Contains(w, address)
 }

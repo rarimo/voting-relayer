@@ -7,27 +7,22 @@ servers:
   - url: 'https://api.demo.tokend.io'
     description: TokenD Developer Environment
 paths:
-  /integrations/registration-relayer/v1/register:
+  /integrations/registration-relayer/v1/vote:
     post:
       tags:
-        - Registration
-      summary: Registration
-      operationId: register
+        - Voting
+      summary: Voting
+      operationId: vote
       requestBody:
         content:
-          application/json:
+          application/vnd.api+json:
             schema:
               type: object
               required:
                 - data
               properties:
                 data:
-                  type: object
-                  required:
-                    - tx_data
-                  properties:
-                    tx_data:
-                      type: string
+                  $ref: '#/components/schemas/SendTx'
       responses:
         '200':
           description: Success
@@ -38,7 +33,7 @@ paths:
                 properties:
                   data:
                     type: object
-                    $ref: '#/components/schemas/Tx'
+                    $ref: '#/components/schemas/TxKey'
         '400':
           description: Bad Request Error
           content:
@@ -88,20 +83,39 @@ components:
                   - 409
                   - 429
                   - 500
-    Tx:
+    SendTx:
       allOf:
-        - $ref: '#/components/schemas/TxKey'
+        - $ref: '#/components/schemas/SendTxKey'
         - type: object
+          x-go-is-request: true
           required:
             - attributes
           properties:
             attributes:
               type: object
               required:
-                - tx_hash
+                - tx_data
+                - destination
               properties:
-                tx_hash:
+                tx_data:
                   type: string
+                  pattern: '^0x[0-9a-fA-F]+$'
+                  example: '0xdeadbeafdeadbeafdeadbeaf'
+                  description: Serialized transaction data
+                destination:
+                  type: string
+                  pattern: '^0x[0-9a-fA-F]{40}'
+                  example: 0xdead...beaf
+                  description: Address of the contract to which the transaction data should be sent
+    SendTxKey:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum:
+            - send_transaction
     TxKey:
       type: object
       required:
@@ -110,10 +124,12 @@ components:
       properties:
         id:
           type: string
+          example: 0xdead...beaf
+          description: Transaction hash
         type:
           type: string
           enum:
-            - txs
+            - transaction
   parameters:
     pageLimitParam:
       in: query

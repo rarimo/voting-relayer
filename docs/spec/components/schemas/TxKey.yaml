@@ -5,7 +5,9 @@ required:
 properties:
   id:
     type: string
+    example: "0xdead...beaf"
+    description: Transaction hash
   type:
     type: string
     enum:
-      - txs
+      - transaction

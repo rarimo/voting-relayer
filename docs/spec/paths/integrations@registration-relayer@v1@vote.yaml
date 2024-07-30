@@ -1,25 +1,20 @@
 post:
   tags:
-    - Registration
-  summary: Registration
-  operationId: register
+    - Voting
+  summary: Voting
+  operationId: vote
   requestBody:
     content:
-      application/json:
+      application/vnd.api+json:
         schema:
           type: object
           required:
             - data
           properties:
             data:
-              type: object
-              required:
-                - tx_data
-              properties:
-                tx_data:
-                  type: string
+              $ref: '#/components/schemas/SendTx'
   responses:
-    '200':
+    200:
       description: Success
       content:
         application/json:
@@ -28,14 +23,14 @@ post:
             properties:
               data:
                 type: object
-                $ref: '#/components/schemas/Tx'
-    '400':
+                $ref: '#/components/schemas/TxKey'
+    400:
       description: Bad Request Error
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Errors'
-    '500':
+    500:
       description: Internal Error
       content:
         application/json:

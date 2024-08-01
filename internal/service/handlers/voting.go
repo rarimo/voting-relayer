@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/rarimo/voting-relayer/internal/service/proposalsstate"
 	"math/big"
 	"net/http"
 	"strings"
@@ -27,6 +29,15 @@ type txData struct {
 	gas       uint64
 }
 
+func isAddressInWhitelist(address common.Address, whitelist []common.Address) bool {
+	for _, addr := range whitelist {
+		if addr == address {
+			return true
+		}
+	}
+	return false
+}
+
 func Voting(w http.ResponseWriter, r *http.Request) {
 	req, err := requests.NewVotingRequest(r)
 	if err != nil {
@@ -38,12 +49,14 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 	var (
 		destination = req.Data.Attributes.Destination
 		calldata    = req.Data.Attributes.TxData
+		proposalId  = req.Data.Attributes.ProposalId
 	)
 
 	log := Log(r).WithFields(logan.F{
 		"user-agent":  r.Header.Get("User-Agent"),
 		"calldata":    calldata,
 		"destination": destination,
+		"proposal_id": proposalId,
 	})
 	log.Debug("voting request")
 
@@ -60,6 +73,33 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 
 	RelayerConfig(r).LockNonce()
 	defer RelayerConfig(r).UnlockNonce()
+
+	contractInstance, err := proposalsstate.NewProposalsState(votingAddress, RelayerConfig(r).RPC)
+	if err != nil {
+		log.Fatalf("Failed to create contract instance: %v", err)
+	}
+
+	session := &proposalsstate.ProposalsStateSession{
+		Contract: contractInstance,
+		CallOpts: bind.CallOpts{
+			Pending: true,
+			From:    common.HexToAddress("YOUR_ADDRESS"),
+		},
+	}
+
+	proposalBigId := new(big.Int)
+	proposalBigId.SetString(proposalId, 10)
+
+	proposalConfig, err := session.GetProposalConfig(proposalBigId)
+	if err != nil {
+		log.Fatalf("Failed to get proposal config: %v", err)
+	}
+
+	if !isAddressInWhitelist(votingAddress, proposalConfig.VotingWhitelist) {
+		Log(r).WithError(err).Error("address not in voting whitelist")
+		ape.RenderErr(w, problems.Unauthorized())
+		return
+	}
 
 	err = confGas(r, &txd, &votingAddress)
 	if err != nil {

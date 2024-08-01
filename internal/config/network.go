@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"crypto/ecdsa"
+	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"sync"
 
@@ -36,8 +37,8 @@ type RelayerConfig struct {
 	ChainID    *big.Int
 	PrivateKey *ecdsa.PrivateKey
 	nonce      uint64
-
-	mut *sync.Mutex
+	Address    common.Address
+	mut        *sync.Mutex
 }
 
 func (e *ethereum) RelayerConfig() *RelayerConfig {
@@ -77,6 +78,7 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 		}
 
 		result.mut = &sync.Mutex{}
+		result.Address = common.HexToAddress(result.Address.Hex())
 		return &result
 	}).(*RelayerConfig)
 }

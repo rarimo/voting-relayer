@@ -83,7 +83,7 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 		Contract: contractInstance,
 		CallOpts: bind.CallOpts{
 			Pending: true,
-			From:    common.HexToAddress("YOUR_ADDRESS"),
+			From:    votingAddress,
 		},
 	}
 

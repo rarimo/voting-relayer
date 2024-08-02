@@ -75,13 +75,7 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 	RelayerConfig(r).LockNonce()
 	defer RelayerConfig(r).UnlockNonce()
 
-	proposalBigID, ok := new(big.Int).SetString(proposalID, 10)
-
-	if !ok {
-		Log(r).Error("Failed to parse proposal id")
-		ape.RenderErr(w, problems.BadRequest(err)...)
-		return
-	}
+	proposalBigID, _ := new(big.Int).SetString(proposalID, 10)
 
 	session, err := proposalsstate.NewProposalsStateCaller(votingAddress, RelayerConfig(r).RPC)
 
@@ -89,12 +83,12 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		Log(r).WithError(err).Error("Failed to get proposal config")
-		ape.RenderErr(w, problems.BadRequest(err)...)
+		ape.RenderErr(w, problems.InternalError())
 		return
 	}
 
 	if !isAddressInWhitelist(votingAddress, proposalConfig.VotingWhitelist) {
-		Log(r).WithError(err).Error("Address not in voting whitelist")
+		Log(r).Error("Address not in voting whitelist")
 		ape.RenderErr(w, problems.Unauthorized())
 		return
 	}

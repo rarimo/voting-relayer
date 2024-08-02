@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/rarimo/voting-relayer/internal/service/proposalsstate"
 	"math/big"
@@ -29,8 +30,9 @@ type txData struct {
 }
 
 func isAddressInWhitelist(votingAddress common.Address, whitelist []common.Address) bool {
+	votingAddressBytes := votingAddress.Bytes()
 	for _, addr := range whitelist {
-		if addr == votingAddress {
+		if bytes.Equal(votingAddressBytes, addr.Bytes()) {
 			return true
 		}
 	}
@@ -75,20 +77,20 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 
 	proposalBigID, ok := new(big.Int).SetString(proposalID, 10)
 
-	session, err := proposalsstate.NewProposalsStateCaller(votingAddress, RelayerConfig(r).RPC)
-
-	if ok != true {
-		Log(r).WithError(err).Error("Failed to parse proposal id")
+	if !ok {
+		Log(r).Error("Failed to parse proposal id")
+		ape.RenderErr(w, problems.BadRequest(err)...)
+		return
 	}
+
+	session, err := proposalsstate.NewProposalsStateCaller(votingAddress, RelayerConfig(r).RPC)
 
 	proposalConfig, err := session.GetProposalConfig(nil, proposalBigID)
 
 	if err != nil {
 		Log(r).WithError(err).Error("Failed to get proposal config")
-	}
-
-	if err != nil {
-		log.Fatalf("Failed to get proposal config: %v", err)
+		ape.RenderErr(w, problems.BadRequest(err)...)
+		return
 	}
 
 	if !isAddressInWhitelist(votingAddress, proposalConfig.VotingWhitelist) {

@@ -3,10 +3,11 @@ package handlers
 import (
 	"bytes"
 	"fmt"
-	"github.com/rarimo/voting-relayer/internal/service/proposalsstate"
 	"math/big"
 	"net/http"
 	"strings"
+
+	"github.com/rarimo/voting-relayer/internal/service/proposalsstate"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -50,7 +51,7 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 	var (
 		destination = req.Data.Attributes.Destination
 		calldata    = req.Data.Attributes.TxData
-		proposalID  = req.Data.Attributes.ProposalId
+		proposalID  = req.Data.Attributes.ProposalID
 	)
 
 	log := Log(r).WithFields(logan.F{
@@ -78,6 +79,12 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 	proposalBigID, _ := new(big.Int).SetString(proposalID, 10)
 
 	session, err := proposalsstate.NewProposalsStateCaller(votingAddress, RelayerConfig(r).RPC)
+
+	if err != nil {
+		Log(r).WithError(err).Error("Failed to get proposal state caller")
+		ape.RenderErr(w, problems.InternalError())
+		return
+	}
 
 	proposalConfig, err := session.GetProposalConfig(nil, proposalBigID)
 

@@ -50,6 +50,7 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 			PrivateKey     *ecdsa.PrivateKey `fig:"private_key"`
 			VaultAddress   string            `fig:"vault_address"`
 			VaultMountPath string            `fig:"vault_mount_path"`
+			Address        common.Address    `fig:"address,required"`
 		}{}
 		err := figure.
 			Out(&networkConfig).
@@ -76,9 +77,9 @@ func (e *ethereum) RelayerConfig() *RelayerConfig {
 		if err != nil {
 			panic(errors.Wrap(err, "failed to get nonce"))
 		}
-
+		result.Address = networkConfig.Address
 		result.mut = &sync.Mutex{}
-		result.Address = common.HexToAddress(result.Address.Hex())
+
 		return &result
 	}).(*RelayerConfig)
 }

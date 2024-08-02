@@ -96,7 +96,7 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 
 	if !isAddressInWhitelist(votingAddress, proposalConfig.VotingWhitelist) {
 		Log(r).Error("Address not in voting whitelist")
-		ape.RenderErr(w, problems.Unauthorized())
+		ape.RenderErr(w, problems.Forbidden())
 		return
 	}
 

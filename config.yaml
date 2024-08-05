@@ -1,18 +1,9 @@
 network:
   rpc: ""
-  registration: ""
-  lightweight_state: ""
   private_key: ""
   vault_address: "https://127.0.0.1:8200"
   vault_mount_path: "secret_data"
-  whitelist: 
-    - 0x123...123
-    - 0x123...123
-    - 0x123...123
-    - 0x123...123
-    - 0x123...123
-    - 0x123...123
-    - 0x123...123
+  address: "0x111"
 
 log:
   level: debug

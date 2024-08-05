@@ -1,10 +1,13 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
 	"math/big"
 	"net/http"
 	"strings"
+
+	"github.com/rarimo/voting-relayer/internal/service/proposalsstate"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -27,6 +30,16 @@ type txData struct {
 	gas       uint64
 }
 
+func isAddressInWhitelist(votingAddress common.Address, whitelist []common.Address) bool {
+	votingAddressBytes := votingAddress.Bytes()
+	for _, addr := range whitelist {
+		if bytes.Equal(votingAddressBytes, addr.Bytes()) {
+			return true
+		}
+	}
+	return false
+}
+
 func Voting(w http.ResponseWriter, r *http.Request) {
 	req, err := requests.NewVotingRequest(r)
 	if err != nil {
@@ -38,12 +51,15 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 	var (
 		destination = req.Data.Attributes.Destination
 		calldata    = req.Data.Attributes.TxData
+		proposalID  = req.Data.Attributes.ProposalId
 	)
 
 	log := Log(r).WithFields(logan.F{
-		"user-agent":  r.Header.Get("User-Agent"),
-		"calldata":    calldata,
-		"destination": destination,
+		"user-agent":              r.Header.Get("User-Agent"),
+		"calldata":                calldata,
+		"destination":             destination,
+		"proposal_id":             proposalID,
+		"proposol_state_contract": RelayerConfig(r).Address,
 	})
 	log.Debug("voting request")
 
@@ -53,7 +69,7 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 	var txd txData
 	txd.dataBytes, err = hexutil.Decode(calldata)
 	if err != nil {
-		Log(r).WithError(err).Error("failed to decode data")
+		log.WithError(err).Error("Failed to decode data")
 		ape.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
@@ -61,9 +77,27 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 	RelayerConfig(r).LockNonce()
 	defer RelayerConfig(r).UnlockNonce()
 
+	proposalBigID := big.NewInt(proposalID)
+
+	session, err := proposalsstate.NewProposalsStateCaller(RelayerConfig(r).Address, RelayerConfig(r).RPC)
+
+	if err != nil {
+		log.WithError(err).Error("Failed to get proposal state caller")
+		ape.RenderErr(w, problems.InternalError())
+		return
+	}
+
+	proposalConfig, err := session.GetProposalConfig(nil, proposalBigID)
+
+	if err != nil {
+		log.WithError(err).Error("Failed to get proposal config")
+		ape.RenderErr(w, problems.InternalError())
+		return
+	}
+
 	err = confGas(r, &txd, &votingAddress)
 	if err != nil {
-		Log(r).WithError(err).Error("failed to configure gas and gasPrice")
+		log.WithError(err).Error("Failed to configure gas and gasPrice")
 		// `errors.Is` is not working for rpc errors, they passed as a string without additional wrapping
 		// because of this we operate with raw strings
 		if strings.Contains(err.Error(), vm.ErrExecutionReverted.Error()) {
@@ -77,9 +111,15 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !isAddressInWhitelist(votingAddress, proposalConfig.VotingWhitelist) {
+		log.Error("Address not in voting whitelist")
+		ape.RenderErr(w, problems.Forbidden())
+		return
+	}
+
 	tx, err := sendTx(r, &txd, &votingAddress)
 	if err != nil {
-		Log(r).WithError(err).Error("failed to send tx")
+		log.WithError(err).Error("failed to send tx")
 		ape.RenderErr(w, problems.InternalError())
 		return
 	}

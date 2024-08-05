@@ -109,8 +109,9 @@ components:
                   example: 0xdead...beaf
                   description: Address of the contract to which the transaction data should be sent
                 proposal_id:
-                  type: string
-                  example: 341241234142412340000
+                  type: integer
+                  format: int64
+                  example: 34234
     SendTxKey:
       type: object
       required:

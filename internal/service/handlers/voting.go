@@ -55,11 +55,10 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 	)
 
 	log := Log(r).WithFields(logan.F{
-		"user-agent":              r.Header.Get("User-Agent"),
-		"calldata":                calldata,
-		"destination":             destination,
-		"proposal_id":             proposalID,
-		"proposol_state_contract": RelayerConfig(r).Address,
+		"user-agent":  r.Header.Get("User-Agent"),
+		"calldata":    calldata,
+		"destination": destination,
+		"proposal_id": proposalID,
 	})
 	log.Debug("voting request")
 
@@ -73,9 +72,6 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 		ape.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
-
-	RelayerConfig(r).LockNonce()
-	defer RelayerConfig(r).UnlockNonce()
 
 	proposalBigID := big.NewInt(proposalID)
 
@@ -95,7 +91,17 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !isAddressInWhitelist(votingAddress, proposalConfig.VotingWhitelist) {
+		log.Error("Address not in voting whitelist")
+		ape.RenderErr(w, problems.Forbidden())
+		return
+	}
+
+	defer RelayerConfig(r).UnlockNonce()
+	RelayerConfig(r).LockNonce()
+
 	err = confGas(r, &txd, &votingAddress)
+
 	if err != nil {
 		log.WithError(err).Error("Failed to configure gas and gasPrice")
 		// `errors.Is` is not working for rpc errors, they passed as a string without additional wrapping
@@ -108,12 +114,6 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		ape.RenderErr(w, problems.InternalError())
-		return
-	}
-
-	if !isAddressInWhitelist(votingAddress, proposalConfig.VotingWhitelist) {
-		log.Error("Address not in voting whitelist")
-		ape.RenderErr(w, problems.Forbidden())
 		return
 	}
 

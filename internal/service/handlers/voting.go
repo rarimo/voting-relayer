@@ -30,13 +30,9 @@ type txData struct {
 	gas       uint64
 }
 
-func isAddressInWhitelist(r *http.Request, votingAddress common.Address, whitelist []common.Address) bool {
+func isAddressInWhitelist(votingAddress common.Address, whitelist []common.Address) bool {
 	votingAddressBytes := votingAddress.Bytes()
-	//x := len(whitelist)
-	Log(r).Infof("Voting Address: %s", votingAddress.Hex())
-	Log(r).Infof("len %s", whitelist)
 	for _, addr := range whitelist {
-		Log(r).Infof("Whitelist Address: %s", addr.Hex())
 		if bytes.Equal(votingAddressBytes, addr.Bytes()) {
 			return true
 		}
@@ -51,7 +47,6 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 		ape.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
-	Log(r).Debug("all good")
 
 	var (
 		destination = req.Data.Attributes.Destination
@@ -59,7 +54,6 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 		proposalID  = req.Data.Attributes.ProposalId
 	)
 
-	Log(r).Debug("all good")
 	log := Log(r).WithFields(logan.F{
 		"user-agent":              r.Header.Get("User-Agent"),
 		"calldata":                calldata,
@@ -83,9 +77,9 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 	RelayerConfig(r).LockNonce()
 	defer RelayerConfig(r).UnlockNonce()
 
-	proposalBigID := big.NewInt(int64(proposalID))
+	proposalBigID := big.NewInt(proposalID)
 
-	session, err := proposalsstate.NewProposalsState(votingAddress, RelayerConfig(r).RPC)
+	session, err := proposalsstate.NewProposalsStateCaller(RelayerConfig(r).Address, RelayerConfig(r).RPC)
 
 	if err != nil {
 		log.WithError(err).Error("Failed to get proposal state caller")
@@ -95,7 +89,11 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 
 	proposalConfig, err := session.GetProposalConfig(nil, proposalBigID)
 
-	log.Debugf("%+v", proposalConfig)
+	if err != nil {
+		log.WithError(err).Error("Failed to get proposal config")
+		ape.RenderErr(w, problems.InternalError())
+		return
+	}
 
 	err = confGas(r, &txd, &votingAddress)
 	if err != nil {
@@ -113,7 +111,7 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !isAddressInWhitelist(r, votingAddress, proposalConfig.VotingWhitelist) {
+	if !isAddressInWhitelist(votingAddress, proposalConfig.VotingWhitelist) {
 		log.Error("Address not in voting whitelist")
 		ape.RenderErr(w, problems.Forbidden())
 		return

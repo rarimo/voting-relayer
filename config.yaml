@@ -12,6 +12,27 @@ log:
 listener:
   addr: :8000
 
+db:
+  url: ""
+
+core:
+  addr: tcp://127.0.0.1:26657
+
+cosmos:
+  addr: 127.0.0.1:9090
+  enable_tls: false
+
+evm:
+  chains:
+    - name: ""
+      bridge_address: ""
+      submitter_private_key: ""
+      rpc:
+
+relay:
+  catchup_disabled: true
+  source_contract: 0x33232 # update
+
 cop:
   disabled: true
   endpoint: "http://..."

@@ -50,11 +50,9 @@ function parseArgs {
 function generate {
     (cd docs && npm run build)
     docker run -v "${OPENAPI_DIR}":/openapi -v "${GENERATED}":/generated "${GENERATOR_IMAGE}" generate -pkg "${PACKAGE_NAME}" --raw-formats-as-types
-    echo "docker finished"
     goimports -w ${GENERATED}
-
 }
 
 parseArgs "$@"
-echo ${OPENAPI_DIR} ${GENERATED} ${GENERATOR_IMAGE} ${PACKAGE_NAME}
+#echo ${OPENAPI_DIR} ${GENERATED} ${GENERATOR_IMAGE} ${PACKAGE_NAME}
 generate

@@ -32,7 +32,7 @@ func Operation(w http.ResponseWriter, r *http.Request) {
 	ape.Render(w, resources.Relation{
 		Data: &resources.Key{
 			ID:   hex.EncodeToString(operation.TxHash[:]),
-			Type: resources.TRANSACTION,
+			Type: resources.OPERATION,
 		},
 	})
 }

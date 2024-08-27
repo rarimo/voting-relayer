@@ -80,7 +80,7 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 	defer RelayerConfig(r).UnlockNonce()
 	RelayerConfig(r).LockNonce()
 
-	err = utils.ConfGas(r, &txd, &votingAddress, RelayerConfig(r))
+	err = utils.ConfGas(r.Context(), &txd, &votingAddress, RelayerConfig(r))
 
 	if err != nil {
 		log.WithError(err).Error("Failed to configure gas and gasPrice")

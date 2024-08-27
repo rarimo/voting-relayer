@@ -3,12 +3,12 @@ package utils
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/rarimo/voting-relayer/internal/config"
+	"gitlab.com/distributed_lab/logan/v3/errors"
 	"math/big"
 	"strings"
 )
@@ -32,7 +32,7 @@ func IsAddressInWhitelist(votingAddress common.Address, whitelist []common.Addre
 func ConfGas(ctx context.Context, txd *TxData, receiver *common.Address, relayerConfig *config.RelayerConfig) (err error) {
 	txd.GasPrice, err = relayerConfig.RPC.SuggestGasPrice(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to suggest gas price: %w", err)
+		return errors.Wrap(err, "failed to suggest gas price")
 	}
 
 	txd.Gas, err = relayerConfig.RPC.EstimateGas(ctx, ethereum.CallMsg{
@@ -42,7 +42,7 @@ func ConfGas(ctx context.Context, txd *TxData, receiver *common.Address, relayer
 		Data:     txd.DataBytes,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to estimate gas: %w", err)
+		return errors.Wrap(err, "failed to estimate gas")
 	}
 
 	return nil
@@ -51,25 +51,25 @@ func ConfGas(ctx context.Context, txd *TxData, receiver *common.Address, relayer
 func SendTx(ctx context.Context, txd *TxData, receiver *common.Address, relayerConfig *config.RelayerConfig) (tx *types.Transaction, err error) {
 	tx, err = SignTx(txd, receiver, relayerConfig)
 	if err != nil {
-		return nil, fmt.Errorf("failed to sign new tx: %w", err)
+		return nil, errors.Wrap(err, "failed to sign new tx")
 	}
 
 	if err = relayerConfig.RPC.SendTransaction(ctx, tx); err != nil {
 		if strings.Contains(err.Error(), "nonce") {
 			if err = relayerConfig.ResetNonce(relayerConfig.RPC); err != nil {
-				return nil, fmt.Errorf("failed to reset nonce: %w", err)
+				return nil, errors.Wrap(err, "failed to reset nonce")
 			}
 
 			tx, err = SignTx(txd, receiver, relayerConfig)
 			if err != nil {
-				return nil, fmt.Errorf("failed to sign new tx: %w", err)
+				return nil, errors.Wrap(err, "failed to sign new tx")
 			}
 
 			if err := relayerConfig.RPC.SendTransaction(ctx, tx); err != nil {
-				return nil, fmt.Errorf("failed to send transaction: %w", err)
+				return nil, errors.Wrap(err, "failed to send transaction")
 			}
 		} else {
-			return nil, fmt.Errorf("failed to send transaction: %w", err)
+			return nil, errors.Wrap(err, "failed to send transaction")
 		}
 	}
 

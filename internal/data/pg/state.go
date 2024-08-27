@@ -2,6 +2,7 @@ package pg
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/fatih/structs"
 	"github.com/rarimo/voting-relayer/internal/data"
@@ -31,7 +32,7 @@ func (q *StateQ) New() data.StateQ {
 func (q *StateQ) Get() (*data.State, error) {
 	var result data.State
 	err := q.db.Get(&result, q.sql)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 

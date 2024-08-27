@@ -7,7 +7,6 @@ import (
 	rarimocore "github.com/rarimo/rarimo-core/x/rarimocore/types"
 	"github.com/rarimo/voting-relayer/internal/config"
 	"github.com/rarimo/voting-relayer/internal/data"
-	"github.com/rarimo/voting-relayer/internal/data/pg"
 	"github.com/rarimo/voting-relayer/internal/state_transitor/core/passport_root_update"
 	"github.com/rarimo/voting-relayer/internal/utils"
 	"gitlab.com/distributed_lab/logan/v3"
@@ -17,17 +16,18 @@ import (
 type stateIngester struct {
 	log        *logan.Entry
 	rarimocore rarimocore.QueryClient
-	storage    *pg.StateQ
+	storage    data.StateQ
 	core       *passport_root_update.Core
 }
 
 var _ Processor = &stateIngester{}
 
-func NewPassportRootIngester(cfg config.Config) Processor {
+func NewPassportRootIngester(cfg config.Config, q data.StateQ) Processor {
 	return &stateIngester{
 		log:        cfg.Log(),
 		rarimocore: rarimocore.NewQueryClient(cfg.Cosmos()),
 		core:       passport_root_update.NewCore(cfg),
+		storage:    q,
 	}
 }
 
@@ -147,7 +147,6 @@ func (s *stateIngester) Validate(operation rarimocore.Operation) error {
 				"operation_index": operation.Index,
 			})
 		}
-
 	}
 
 	return nil

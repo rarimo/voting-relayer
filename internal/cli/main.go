@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/alecthomas/kingpin"
 	"github.com/rarimo/voting-relayer/internal/config"
+	"github.com/rarimo/voting-relayer/internal/data/pg"
 	"github.com/rarimo/voting-relayer/internal/service"
 	ingester "github.com/rarimo/voting-relayer/internal/state_transitor"
 	"gitlab.com/distributed_lab/kit/kv"
@@ -47,14 +48,14 @@ func Run(args []string) bool {
 		ws := new(sync.WaitGroup)
 		ws.Add(2)
 		go service.Run(cfg, ws)
-		go ingester.NewService(cfg, ingester.NewPassportRootIngester(cfg), ws).Run(context.Background())
+		go ingester.NewService(cfg, ingester.NewPassportRootIngester(cfg, pg.NewStateQ(cfg.DB())), ws).Run(context.Background())
 		ws.Wait()
 		break
 	case votingCmd.FullCommand():
 		service.Run(cfg, nil)
 		break
 	case relayerCmd.FullCommand():
-		ingester.NewService(cfg, ingester.NewPassportRootIngester(cfg), nil).Run(context.Background())
+		ingester.NewService(cfg, ingester.NewPassportRootIngester(cfg, pg.NewStateQ(cfg.DB())), nil).Run(context.Background())
 		break
 	case migrateUpCmd.FullCommand():
 		err = MigrateUp(cfg)

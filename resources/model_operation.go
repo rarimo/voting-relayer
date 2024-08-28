@@ -8,12 +8,12 @@ type Operation struct {
 	Key
 	Attributes OperationAttributes `json:"attributes"`
 }
-type OperationRequest struct {
+type OperationResponse struct {
 	Data     Operation `json:"data"`
 	Included Included  `json:"included"`
 }
 
-type OperationListRequest struct {
+type OperationListResponse struct {
 	Data     []Operation `json:"data"`
 	Included Included    `json:"included"`
 	Links    *Links      `json:"links"`

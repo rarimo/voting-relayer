@@ -21,8 +21,13 @@ func (s *service) router() chi.Router {
 	)
 	r.Route("/integrations/voting-relayer", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
-			r.Post("/vote", handlers.Voting)
-			r.Get("/operations/{id}", handlers.Operation)
+			r.Route("/vote", func(r chi.Router) {
+				r.Post("/", handlers.Voting)
+			})
+			r.Route("/operations", func(r chi.Router) {
+				r.Get("/{root}", handlers.GetOperationByRoot)
+				r.Get("/", handlers.GetLastOperation)
+			})
 		})
 	})
 

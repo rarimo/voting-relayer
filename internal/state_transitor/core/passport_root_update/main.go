@@ -33,16 +33,18 @@ var (
 )
 
 type Core struct {
-	log  *logan.Entry
-	core rarimocore.QueryClient
-	evm  *config.EVM
+	log     *logan.Entry
+	core    rarimocore.QueryClient
+	evm     *config.EVM
+	relayer *config.RelayerConfig
 }
 
 func NewCore(cfg config.Config) *Core {
 	return &Core{
-		core: rarimocore.NewQueryClient(cfg.Cosmos()),
-		log:  cfg.Log().WithField("service", "core"),
-		evm:  cfg.EVM(),
+		core:    rarimocore.NewQueryClient(cfg.Cosmos()),
+		log:     cfg.Log().WithField("service", "core"),
+		evm:     cfg.EVM(),
+		relayer: cfg.RelayerConfig(),
 	}
 }
 
@@ -85,44 +87,46 @@ func (c *Core) ProcessPassportStateTransfer(ctx context.Context, details *Passpo
 
 	res := make(map[int64]string)
 	for _, chain := range c.evm.Chains {
-		opts := chain.TransactorOpts()
+		func() {
+			opts := chain.TransactorOpts()
 
-		nonce, err := chain.RPC.PendingNonceAt(context.TODO(), chain.SubmitterAddress)
-		if err != nil {
-			commonError = errors.Wrap(commonError, errors.Wrap(err, "failed to fetch a nonce").Error())
-			continue
-		}
+			c.relayer.LockNonce()
+			defer c.relayer.UnlockNonce()
 
-		opts.Nonce = big.NewInt(int64(nonce))
+			opts.Nonce = new(big.Int).SetUint64(c.relayer.Nonce())
 
-		contract, err := registrationsmtreplicator.NewRegistrationSMTReplicatorTransactor(chain.ContractAddress, chain.RPC)
-		if err != nil {
-			commonError = errors.Wrap(commonError, errors.Wrap(err, "failed to create contract instance").Error())
-			continue
-		}
+			contract, err := registrationsmtreplicator.NewRegistrationSMTReplicatorTransactor(chain.ContractAddress, chain.RPC)
+			if err != nil {
+				commonError = errors.Wrap(commonError, errors.Wrap(err, "failed to create contract instance").Error())
+				return
+			}
 
-		var root [32]byte
-		copy(root[:], hexutil.MustDecode(details.Operation.Root))
+			var root [32]byte
+			copy(root[:], hexutil.MustDecode(details.Operation.Root))
 
-		timestamp := new(big.Int).SetInt64(details.Operation.Timestamp)
+			timestamp := new(big.Int).SetInt64(details.Operation.Timestamp)
 
-		tx, err := contract.TransitionRoot(opts, root, timestamp, details.Proof)
-		if err != nil {
-			c.log.Debugf(
-				"Tx args: %s, %s, %s",
-				root,
-				timestamp.String(),
-				hexutil.Encode(details.Proof),
-			)
-			commonError = errors.Wrap(commonError, errors.Wrap(err, "failed to send state transition tx").Error())
-			continue
-		}
+			tx, err := contract.TransitionRoot(opts, root, timestamp, details.Proof)
+			if err != nil {
+				c.log.Debugf(
+					"Tx args: %s, %s, %s",
+					root,
+					timestamp.String(),
+					hexutil.Encode(details.Proof),
+				)
+				commonError = errors.Wrap(commonError, errors.Wrap(err, "failed to send state transition tx").Error())
+				return
+			}
 
-		if waitTxConfirm {
-			c.WaitTxConfirmation(ctx, &chain, tx)
-		}
+			if waitTxConfirm {
+				c.WaitTxConfirmation(ctx, &chain, tx)
+			}
 
-		res[chain.ChainID.Int64()] = tx.Hash().Hex()
+			c.relayer.IncrementNonce()
+
+			res[chain.ChainID.Int64()] = tx.Hash().Hex()
+		}()
+
 	}
 	return res, commonError
 }

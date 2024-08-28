@@ -12,7 +12,6 @@ require (
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-ozzo/ozzo-validation/v4 v4.2.1
 	github.com/hashicorp/vault/api v1.12.2
-	github.com/rarimo/go-merkle v0.0.0-20231004122345-36fa49031c66
 	github.com/rarimo/rarimo-core v1.1.3
 	github.com/rubenv/sql-migrate v1.7.0
 	github.com/spf13/cast v1.6.0
@@ -126,6 +125,7 @@ require (
 	github.com/prometheus/client_model v0.6.0 // indirect
 	github.com/prometheus/common v0.47.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
+	github.com/rarimo/go-merkle v0.0.0-20231004122345-36fa49031c66 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect

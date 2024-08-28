@@ -1,0 +1,35 @@
+parameters:
+  - name: root
+    in: path
+    description: Opration identifier
+    required: true
+    schema:
+      type: string
+get:
+  tags:
+    - OperationByRoot
+  summary: Operation by root
+  operationId: getOperationInfoByRoot
+  responses:
+    200:
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                $ref: '#/components/schemas/Operation'
+    400:
+      description: Bad Request Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    500:
+      description: Internal Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'

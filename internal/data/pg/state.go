@@ -49,7 +49,17 @@ func (q *StateQ) Insert(value data.State) (int64, error) {
 	return id, err
 }
 
-func (q *StateQ) FilterByOperationId(ids ...string) data.StateQ {
-	q.sql = q.sql.Where(sq.Eq{"b.operation_id": ids})
+func (q *StateQ) FilterByRoot(root ...string) data.StateQ {
+	q.sql = q.sql.Where(sq.Eq{"b.root": root})
+	return q
+}
+
+func (q *StateQ) FilterByBlockHeight(blockHeight ...string) data.StateQ {
+	q.sql = q.sql.Where(sq.Eq{"b.block_height": blockHeight})
+	return q
+}
+
+func (q *StateQ) SortByBlockHeight(order data.SortOrder) data.StateQ {
+	q.sql = q.sql.OrderBy(fmt.Sprintf("b.block_height %s", order))
 	return q
 }

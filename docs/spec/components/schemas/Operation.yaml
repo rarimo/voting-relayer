@@ -1,9 +1,7 @@
 allOf:
   - $ref: '#/components/schemas/operationKey'
   - type: object
-    x-go-is-request: true
-    required:
-      - attributes
+    required: [relationships, attributes]
     properties:
       attributes:
         type: object
@@ -13,6 +11,7 @@ allOf:
           - destination_address
           - operation_id
           - proof
+          - block_height
         properties:
           tx_hash:
             type: string
@@ -35,3 +34,7 @@ allOf:
           proof:
             type: string
             example: "0x0000...0000"
+          block_height:
+            type: int
+            format: uint64
+            example: "234234"

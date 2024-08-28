@@ -113,12 +113,14 @@ func (s *stateIngester) Process(
 		for chain, txHash := range processedOperations {
 			_, err = s.storage.Insert(
 				data.State{
-					ChainId:     chain,
-					OperationId: utils.StringToBytes32(operation.Operation.Index),
-					TxHash:      utils.StringToBytes32(txHash),
-					Event:       operation.Operation.OperationType.String(),
-					Proof:       proof32,
-					Root:        utils.StringToBytes32(proof.Operation.Root),
+					ChainId:            chain,
+					OperationId:        utils.StringToBytes32(operation.Operation.Index),
+					TxHash:             utils.StringToBytes32(txHash),
+					Event:              operation.Operation.OperationType.String(),
+					Proof:              proof32,
+					Root:               utils.StringToBytes32(proof.Operation.Root),
+					DestinationAddress: utils.StringToBytes20(proof.Operation.ContractAddress),
+					BlockHeight:        proof.Operation.BlockHeight,
 				},
 			)
 			if err != nil {

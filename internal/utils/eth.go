@@ -65,7 +65,7 @@ func SendTx(ctx context.Context, txd *TxData, receiver *common.Address, relayerC
 				return nil, errors.Wrap(err, "failed to sign new tx")
 			}
 
-			if err := relayerConfig.RPC.SendTransaction(ctx, tx); err != nil {
+			if err = relayerConfig.RPC.SendTransaction(ctx, tx); err != nil {
 				return nil, errors.Wrap(err, "failed to send transaction")
 			}
 		} else {

@@ -29,7 +29,7 @@ evm:
       submitter_private_key: ""
       rpc:
 
-relay:
+autorelayer:
   catchup_disabled: true
   source_contract: 0x33232 # update
 

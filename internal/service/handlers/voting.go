@@ -2,11 +2,10 @@ package handlers
 
 import (
 	"github.com/rarimo/voting-relayer/internal/utils"
+	"github.com/rarimo/voting-relayer/pkg/contracts/proposalsstate"
 	"math/big"
 	"net/http"
 	"strings"
-
-	"github.com/rarimo/voting-relayer/internal/service/proposalsstate"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"

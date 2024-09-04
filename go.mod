@@ -12,7 +12,7 @@ require (
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-ozzo/ozzo-validation/v4 v4.2.1
 	github.com/hashicorp/vault/api v1.12.2
-	github.com/rarimo/rarimo-core v1.1.3
+	github.com/rarimo/rarimo-core v1.1.4-rc6
 	github.com/rubenv/sql-migrate v1.7.0
 	github.com/spf13/cast v1.6.0
 	github.com/tendermint/tendermint v0.34.27
@@ -181,7 +181,6 @@ replace (
 	github.com/cosmos/cosmos-sdk => github.com/rarimo/cosmos-sdk v0.46.7
 	github.com/cosmos/iavl => github.com/cosmos/iavl v0.19.4
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	github.com/rarimo/rarimo-core => /Users/dl/Projects/rarimo/rarimo-core
 	github.com/tendermint/tendermint => github.com/tendermint/tendermint v0.34.24
 	nhooyr.io/websocket => github.com/coder/websocket v1.8.7
 )

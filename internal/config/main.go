@@ -19,6 +19,7 @@ type Config interface {
 	EVMer
 
 	RelayerConfiger
+	AutorelayerConfiger
 }
 
 type config struct {
@@ -33,20 +34,22 @@ type config struct {
 	EVMer
 
 	RelayerConfiger
+	AutorelayerConfiger
 
 	relay comfig.Once
 }
 
 func New(getter kv.Getter) Config {
 	return &config{
-		getter:          getter,
-		Copuser:         copus.NewCopuser(getter),
-		Listenerer:      comfig.NewListenerer(getter),
-		Logger:          comfig.NewLogger(getter, comfig.LoggerOpts{}),
-		RelayerConfiger: NewRelayerConfiger(getter),
-		Tenderminter:    NewTenderminter(getter),
-		Cosmoser:        NewCosmoser(getter),
-		EVMer:           NewEVMer(getter),
-		Databaser:       pgdb.NewDatabaser(getter),
+		getter:              getter,
+		Copuser:             copus.NewCopuser(getter),
+		Listenerer:          comfig.NewListenerer(getter),
+		Logger:              comfig.NewLogger(getter, comfig.LoggerOpts{}),
+		RelayerConfiger:     NewRelayerConfiger(getter),
+		Tenderminter:        NewTenderminter(getter),
+		Cosmoser:            NewCosmoser(getter),
+		EVMer:               NewEVMer(getter),
+		Databaser:           pgdb.NewDatabaser(getter),
+		AutorelayerConfiger: NewAutorelayerConfiger(getter),
 	}
 }

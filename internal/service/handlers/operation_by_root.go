@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/hex"
 	"github.com/rarimo/voting-relayer/internal/service/requests"
 	"github.com/rarimo/voting-relayer/resources"
 	"gitlab.com/distributed_lab/ape"
@@ -33,12 +32,11 @@ func GetOperationByRoot(w http.ResponseWriter, r *http.Request) {
 	ape.Render(w, resources.OperationResponse{
 		Data: resources.Operation{
 			Attributes: resources.OperationAttributes{
-				BlockHeight:        operation.BlockHeight,
-				DestinationChain:   strconv.FormatInt(operation.ChainId, 10),
-				DestinationAddress: hex.EncodeToString(operation.DestinationAddress[:]),
-				OperationId:        hex.EncodeToString(operation.OperationId[:]),
-				Proof:              hex.EncodeToString(operation.Proof[:]),
-				TxHash:             hex.EncodeToString(operation.TxHash[:]),
+				BlockHeight:      operation.BlockHeight,
+				DestinationChain: strconv.FormatInt(operation.ChainId, 10),
+				OperationId:      operation.OperationId,
+				Proof:            operation.Proof,
+				TxHash:           operation.TxHash,
 			},
 		},
 	})

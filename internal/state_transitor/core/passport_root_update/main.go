@@ -11,7 +11,7 @@ import (
 	rarimocore "github.com/rarimo/rarimo-core/x/rarimocore/types"
 	"github.com/rarimo/voting-relayer/internal/config"
 	"github.com/rarimo/voting-relayer/internal/utils"
-	registrationsmtreplicator "github.com/rarimo/voting-relayer/pkg/passport/contracts"
+	registrationsmtreplicator "github.com/rarimo/voting-relayer/pkg/contracts/passport"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 	"math/big"
@@ -87,47 +87,16 @@ func (c *Core) ProcessPassportStateTransfer(ctx context.Context, details *Passpo
 
 	res := make(map[int64]string)
 	for _, chain := range c.evm.Chains {
-		func() {
-			opts := chain.TransactorOpts()
+		tx, err := c.broadcastState(ctx, chain, details, waitTxConfirm)
+		if err != nil {
+			c.log.WithError(err).Error("failed to broadcast state")
+			commonError = errors.Wrap(err, errors.Wrap(commonError, "failed to broadcast state").Error())
+			continue
+		}
 
-			c.relayer.LockNonce()
-			defer c.relayer.UnlockNonce()
-
-			opts.Nonce = new(big.Int).SetUint64(c.relayer.Nonce())
-
-			contract, err := registrationsmtreplicator.NewRegistrationSMTReplicatorTransactor(chain.ContractAddress, chain.RPC)
-			if err != nil {
-				commonError = errors.Wrap(commonError, errors.Wrap(err, "failed to create contract instance").Error())
-				return
-			}
-
-			var root [32]byte
-			copy(root[:], hexutil.MustDecode(details.Operation.Root))
-
-			timestamp := new(big.Int).SetInt64(details.Operation.Timestamp)
-
-			tx, err := contract.TransitionRoot(opts, root, timestamp, details.Proof)
-			if err != nil {
-				c.log.Debugf(
-					"Tx args: %s, %s, %s",
-					root,
-					timestamp.String(),
-					hexutil.Encode(details.Proof),
-				)
-				commonError = errors.Wrap(commonError, errors.Wrap(err, "failed to send state transition tx").Error())
-				return
-			}
-
-			if waitTxConfirm {
-				c.WaitTxConfirmation(ctx, &chain, tx)
-			}
-
-			c.relayer.IncrementNonce()
-
-			res[chain.ChainID.Int64()] = tx.Hash().Hex()
-		}()
-
+		res[chain.ChainID.Int64()] = tx.Hash().Hex()
 	}
+
 	return res, commonError
 }
 
@@ -154,4 +123,44 @@ func (c *Core) WaitTxConfirmation(ctx context.Context, chain *config.EVMChain, t
 			"gas_used":     receipt.GasUsed,
 		}).
 		Info("evm transaction confirmed")
+}
+
+func (c *Core) broadcastState(ctx context.Context, chain config.EVMChain, details *PassportRootTransferDetails, waitTxConfirm bool) (*types.Transaction, error) {
+	opts := chain.TransactorOpts()
+
+	c.relayer.LockNonce()
+	defer c.relayer.UnlockNonce()
+
+	opts.Nonce = new(big.Int).SetUint64(c.relayer.Nonce())
+
+	contract, err := registrationsmtreplicator.NewRegistrationSMTReplicatorTransactor(chain.ContractAddress, chain.RPC)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create contract instance")
+
+	}
+
+	var root [32]byte
+	copy(root[:], hexutil.MustDecode(details.Operation.Root))
+
+	timestamp := new(big.Int).SetInt64(details.Operation.Timestamp)
+
+	tx, err := contract.TransitionRoot(opts, root, timestamp, details.Proof)
+	if err != nil {
+		c.log.Debugf(
+			"Tx args: %s, %s, %s",
+			hexutil.Encode(root[:]),
+			timestamp.String(),
+			hexutil.Encode(details.Proof),
+		)
+		return nil, errors.Wrap(err, "failed to send state transition tx")
+
+	}
+
+	if waitTxConfirm {
+		c.WaitTxConfirmation(ctx, &chain, tx)
+	}
+
+	c.relayer.IncrementNonce()
+
+	return tx, nil
 }

@@ -13,15 +13,14 @@ type StateQ interface {
 }
 
 type State struct {
-	ID                 int64    `db:"id" structs:"-"`
-	OperationId        [32]byte `db:"operation_id" structs:"operation_id"`
-	TxHash             [32]byte `db:"tx_hash" structs:"tx_hash"`
-	Proof              [32]byte `db:"proof" structs:"proof"`
-	Root               [32]byte `db:"root" structs:"root"`
-	ChainId            int64    `db:"chain_id" structs:"chain_id"`
-	BlockHeight        uint64   `db:"block_height" structs:"block_height"`
-	DestinationAddress [20]byte `db:"destination_address" structs:"destination_address"`
-	Event              string   `db:"event" structs:"event"`
+	ID          int64  `db:"id" structs:"-"`
+	OperationId string `db:"operation_id" structs:"operation_id"`
+	TxHash      string `db:"tx_hash" structs:"tx_hash"`
+	Proof       string `db:"proof" structs:"proof"`
+	Root        string `db:"root" structs:"root"`
+	ChainId     int64  `db:"chain_id" structs:"chain_id"`
+	BlockHeight uint64 `db:"block_height" structs:"block_height"`
+	Event       string `db:"event" structs:"event"`
 }
 
 const (

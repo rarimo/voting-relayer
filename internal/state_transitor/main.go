@@ -35,10 +35,11 @@ type Processor interface {
 
 func NewService(cfg config.Config, processor Processor, ws *sync.WaitGroup) *Service {
 	return &Service{
-		Processor: processor,
-		log:       cfg.Log(),
-		client:    cfg.Tendermint(),
-		ws:        ws,
+		Processor:       processor,
+		log:             cfg.Log(),
+		client:          cfg.Tendermint(),
+		ws:              ws,
+		catchupDisabled: cfg.AutorelayConfig().CatchupDisabled,
 	}
 }
 

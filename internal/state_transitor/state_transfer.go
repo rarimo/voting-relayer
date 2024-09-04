@@ -3,12 +3,12 @@ package ingester
 import (
 	"context"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/rarimo/rarimo-core/x/rarimocore/crypto/pkg"
 	rarimocore "github.com/rarimo/rarimo-core/x/rarimocore/types"
 	"github.com/rarimo/voting-relayer/internal/config"
 	"github.com/rarimo/voting-relayer/internal/data"
 	"github.com/rarimo/voting-relayer/internal/state_transitor/core/passport_root_update"
-	"github.com/rarimo/voting-relayer/internal/utils"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
@@ -48,12 +48,12 @@ func (s *stateIngester) Catchup(ctx context.Context) error {
 	for {
 		operations, err := s.rarimocore.OperationAll(ctx, &rarimocore.QueryAllOperationRequest{Pagination: &query.PageRequest{Key: nextKey}})
 		if err != nil {
-			panic(err)
+			return errors.Wrap(err, "failed to fetch operations")
 		}
 
 		for _, op := range operations.Operation {
 			if op.Status == rarimocore.OpStatus_SIGNED && op.OperationType == rarimocore.OpType_PASSPORT_ROOT_UPDATE {
-				if err := s.Validate(op); err != nil {
+				if err = s.Validate(op); err != nil {
 					return err
 				}
 			}
@@ -70,8 +70,7 @@ func (s *stateIngester) Process(
 	ctx context.Context,
 	confirmationID string,
 ) error {
-	log := s.log.WithField("confirmation_id", confirmationID)
-	log.Info("processing a confirmation")
+	s.log.WithField("confirmation_id", confirmationID).Info("processing a confirmation")
 
 	rawConf, err := s.rarimocore.Confirmation(ctx, &rarimocore.QueryGetConfirmationRequest{Root: confirmationID})
 	if err != nil {
@@ -88,7 +87,7 @@ func (s *stateIngester) Process(
 			})
 		}
 
-		if err := s.Validate(operation.Operation); err != nil {
+		if err = s.Validate(operation.Operation); err != nil {
 			return err
 		}
 
@@ -107,20 +106,17 @@ func (s *stateIngester) Process(
 		}
 
 		var commonError error
-		var proof32 [32]byte
-		copy(proof32[:], proof.Proof)
 
 		for chain, txHash := range processedOperations {
 			_, err = s.storage.Insert(
 				data.State{
-					ChainId:            chain,
-					OperationId:        utils.StringToBytes32(operation.Operation.Index),
-					TxHash:             utils.StringToBytes32(txHash),
-					Event:              operation.Operation.OperationType.String(),
-					Proof:              proof32,
-					Root:               utils.StringToBytes32(proof.Operation.Root),
-					DestinationAddress: utils.StringToBytes20(proof.Operation.ContractAddress),
-					BlockHeight:        proof.Operation.BlockHeight,
+					ChainId:     chain,
+					OperationId: operation.Operation.Index,
+					TxHash:      txHash,
+					Event:       operation.Operation.OperationType.String(),
+					Proof:       hexutil.Encode(proof.Proof),
+					Root:        proof.Operation.Root,
+					BlockHeight: proof.Operation.BlockHeight,
 				},
 			)
 			if err != nil {
@@ -136,19 +132,19 @@ func (s *stateIngester) Process(
 	}
 
 	return nil
-
 }
 
 func (s *stateIngester) Validate(operation rarimocore.Operation) error {
-	if operation.OperationType == rarimocore.OpType_PASSPORT_ROOT_UPDATE {
-		s.log.WithField("operation_index", operation.Index).Info("Trying to save op")
+	if operation.OperationType != rarimocore.OpType_PASSPORT_ROOT_UPDATE {
+		return nil
+	}
 
-		_, err := pkg.GetPassportRootUpdate(operation)
-		if err != nil {
-			return errors.Wrap(err, "failed to parse passport root transfer", logan.F{
-				"operation_index": operation.Index,
-			})
-		}
+	s.log.WithField("operation_index", operation.Index).Info("Trying to save op")
+
+	if _, err := pkg.GetPassportRootUpdate(operation); err != nil {
+		return errors.Wrap(err, "failed to parse passport root transfer", logan.F{
+			"operation_index": operation.Index,
+		})
 	}
 
 	return nil

@@ -85,7 +85,7 @@ func (s *Service) run(ctx context.Context) error {
 			confirmation := c.Events[fmt.Sprintf("%s.%s", rarimocore.EventTypeOperationSigned, rarimocore.AttributeKeyConfirmationId)][0]
 			s.log.Infof("New confirmation found %s", confirmation)
 
-			if err := s.Process(ctx, confirmation); err != nil {
+			if err = s.Process(ctx, confirmation); err != nil {
 				s.log.WithError(err).Error("failed to process confirmation")
 			}
 		}

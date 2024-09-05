@@ -3,6 +3,7 @@ package service
 import (
 	"net"
 	"net/http"
+	"sync"
 
 	"github.com/rarimo/voting-relayer/internal/config"
 	"gitlab.com/distributed_lab/kit/copus/types"
@@ -37,7 +38,11 @@ func newService(cfg config.Config) *service {
 	}
 }
 
-func Run(cfg config.Config) {
+func Run(cfg config.Config, ws *sync.WaitGroup) {
+	if ws != nil {
+		defer ws.Done()
+	}
+
 	if err := newService(cfg).run(); err != nil {
 		panic(err)
 	}

@@ -77,8 +77,13 @@ use `docker run ` with `-p 8080:80` to expose port 80 to 8080
 
 * Set up environment value with config file path `KV_VIPER_FILE=./config.yaml`
 * Provide valid config file
-* Launch the service with `run service` command
+* Launch the service with `run service` command to run full mode (voting and relayer)
 
+### Voting mode 
+To run service only in voting mode should use `run voting`
+
+### Relayer mode 
+To run service only in relayer mode should use `run relayer`
 
 
 ### Third-party services

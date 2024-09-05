@@ -1,0 +1,34 @@
+allOf:
+  - $ref: '#/components/schemas/operationKey'
+  - type: object
+    required: [relationships, attributes]
+    properties:
+      attributes:
+        type: object
+        required:
+          - tx_hash
+          - destination_chain
+          - operation_id
+          - proof
+          - block_height
+        properties:
+          tx_hash:
+            type: string
+            pattern: "^0x[0-9a-fA-F]+$"
+            example: "0xdeadbeafdeadbeafdeadbeaf"
+            description: Serialized transaction data
+          destination_chain:
+            type: string
+            pattern: ""
+            example: "5"
+            description: Destination chain ID
+          operation_id:
+            type: string
+            example: "0x0000...0000"
+          proof:
+            type: string
+            example: "0x0000...0000"
+          block_height:
+            type: int
+            format: uint64
+            example: "234234"

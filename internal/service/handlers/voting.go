@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/rarimo/voting-relayer/internal/service/proposalsstate"
+	"github.com/rarimo/voting-relayer/pkg/contracts/proposalsstate"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -51,7 +51,7 @@ func Voting(w http.ResponseWriter, r *http.Request) {
 	var (
 		destination = req.Data.Attributes.Destination
 		calldata    = req.Data.Attributes.TxData
-		proposalID  = req.Data.Attributes.ProposalId
+		proposalID  = req.Data.Attributes.ProposalID
 	)
 
 	log := Log(r).WithFields(logan.F{

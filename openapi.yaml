@@ -7,6 +7,71 @@ servers:
   - url: 'https://api.demo.tokend.io'
     description: TokenD Developer Environment
 paths:
+  /integrations/registration-relayer/v1/operation:
+    get:
+      tags:
+        - lastOperation
+      summary: Get last operation
+      operationId: getLastOperation
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    $ref: '#/components/schemas/Operation'
+        '400':
+          description: Bad Request Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '500':
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+  '/integrations/registration-relayer/v1/operation/{root}':
+    parameters:
+      - name: root
+        in: path
+        description: Opration identifier
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - OperationByRoot
+      summary: Operation by root
+      operationId: getOperationInfoByRoot
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    $ref: '#/components/schemas/Operation'
+        '400':
+          description: Bad Request Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '500':
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
   /integrations/registration-relayer/v1/vote:
     post:
       tags:
@@ -83,6 +148,52 @@ components:
                   - 409
                   - 429
                   - 500
+    Operation:
+      allOf:
+        - $ref: '#/components/schemas/operationKey'
+        - type: object
+          required:
+            - relationships
+            - attributes
+          properties:
+            attributes:
+              type: object
+              required:
+                - tx_hash
+                - destination_chain
+                - operation_id
+                - proof
+                - block_height
+              properties:
+                tx_hash:
+                  type: string
+                  pattern: '^0x[0-9a-fA-F]+$'
+                  example: '0xdeadbeafdeadbeafdeadbeaf'
+                  description: Serialized transaction data
+                destination_chain:
+                  type: string
+                  pattern: ''
+                  example: '5'
+                  description: Destination chain ID
+                operation_id:
+                  type: string
+                  example: 0x0000...0000
+                proof:
+                  type: string
+                  example: 0x0000...0000
+                block_height:
+                  type: int
+                  format: uint64
+                  example: '234234'
+    OperationKey:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum:
+            - operation
     SendTx:
       allOf:
         - $ref: '#/components/schemas/SendTxKey'

@@ -4,6 +4,8 @@ import (
 	"crypto/tls"
 	"time"
 
+	"google.golang.org/grpc/credentials/insecure"
+
 	"gitlab.com/distributed_lab/figure/v3"
 	"gitlab.com/distributed_lab/kit/comfig"
 	"gitlab.com/distributed_lab/kit/kv"
@@ -41,7 +43,7 @@ func (c *cosmoser) Cosmos() *grpc.ClientConn {
 		var client *grpc.ClientConn
 		var err error
 
-		connectSecurityOptions := grpc.WithInsecure()
+		connectSecurityOptions := grpc.WithTransportCredentials(insecure.NewCredentials())
 
 		if config.TLS {
 			tlsConfig := &tls.Config{
@@ -51,7 +53,7 @@ func (c *cosmoser) Cosmos() *grpc.ClientConn {
 			connectSecurityOptions = grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig))
 		}
 
-		client, err = grpc.Dial(config.Addr, connectSecurityOptions, grpc.WithKeepaliveParams(keepalive.ClientParameters{
+		client, err = grpc.NewClient(config.Addr, connectSecurityOptions, grpc.WithKeepaliveParams(keepalive.ClientParameters{
 			Time:    10 * time.Second, // wait time before ping if no activity
 			Timeout: 20 * time.Second, // ping timeout
 		}))

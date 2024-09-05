@@ -2,6 +2,8 @@ package cli
 
 import (
 	"context"
+	"sync"
+
 	"github.com/alecthomas/kingpin"
 	"github.com/rarimo/voting-relayer/internal/config"
 	"github.com/rarimo/voting-relayer/internal/data/pg"
@@ -9,7 +11,6 @@ import (
 	ingester "github.com/rarimo/voting-relayer/internal/state_transitor"
 	"gitlab.com/distributed_lab/kit/kv"
 	"gitlab.com/distributed_lab/logan/v3"
-	"sync"
 )
 
 func Run(args []string) bool {
@@ -50,19 +51,25 @@ func Run(args []string) bool {
 		go service.Run(cfg, ws)
 		go ingester.NewService(cfg, ingester.NewPassportRootIngester(cfg, pg.NewStateQ(cfg.DB())), ws).Run(context.Background())
 		ws.Wait()
-		break
+
 	case votingCmd.FullCommand():
 		service.Run(cfg, nil)
-		break
+
 	case relayerCmd.FullCommand():
 		ingester.NewService(cfg, ingester.NewPassportRootIngester(cfg, pg.NewStateQ(cfg.DB())), nil).Run(context.Background())
-		break
+
 	case migrateUpCmd.FullCommand():
-		err = MigrateUp(cfg)
-		break
+		if err = MigrateUp(cfg); err != nil {
+			log.WithError(err).Error("failed to migrate up")
+			return false
+		}
+
 	case migrateDownCmd.FullCommand():
-		err = MigrateDown(cfg)
-		break
+		if err = MigrateDown(cfg); err != nil {
+			log.WithError(err).Error("failed to migrate down")
+			return false
+		}
+
 	default:
 		log.Errorf("unknown command %s", cmd)
 		return false

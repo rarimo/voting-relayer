@@ -1,4 +1,4 @@
-package passport_root_update
+package passportrootupdate
 
 import rarimocore "github.com/rarimo/rarimo-core/x/rarimocore/types"
 

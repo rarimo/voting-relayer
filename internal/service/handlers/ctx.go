@@ -2,8 +2,9 @@ package handlers
 
 import (
 	"context"
-	"github.com/rarimo/voting-relayer/internal/data"
 	"net/http"
+
+	"github.com/rarimo/voting-relayer/internal/data"
 
 	"github.com/rarimo/voting-relayer/internal/config"
 	"gitlab.com/distributed_lab/logan/v3"

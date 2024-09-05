@@ -35,8 +35,6 @@ type config struct {
 
 	RelayerConfiger
 	AutorelayerConfiger
-
-	relay comfig.Once
 }
 
 func New(getter kv.Getter) Config {

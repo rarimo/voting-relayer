@@ -1,12 +1,13 @@
 package handlers
 
 import (
+	"net/http"
+	"strconv"
+
 	"github.com/rarimo/voting-relayer/internal/data"
 	"github.com/rarimo/voting-relayer/resources"
 	"gitlab.com/distributed_lab/ape"
 	"gitlab.com/distributed_lab/ape/problems"
-	"net/http"
-	"strconv"
 )
 
 func GetLastOperation(w http.ResponseWriter, r *http.Request) {
@@ -26,8 +27,8 @@ func GetLastOperation(w http.ResponseWriter, r *http.Request) {
 		Data: resources.Operation{
 			Attributes: resources.OperationAttributes{
 				BlockHeight:      operation.BlockHeight,
-				DestinationChain: strconv.FormatInt(operation.ChainId, 10),
-				OperationId:      operation.OperationId,
+				DestinationChain: strconv.FormatInt(operation.ChainID, 10),
+				OperationID:      operation.OperationID,
 				Proof:            operation.Proof,
 				TxHash:           operation.TxHash,
 			},

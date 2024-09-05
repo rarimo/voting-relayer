@@ -35,11 +35,11 @@ func (d Details) String() string {
 }
 
 // Value - implements db driver method for auto marshal
-func (r Details) Value() (driver.Value, error) {
-	return driverValue(r)
+func (d Details) Value() (driver.Value, error) {
+	return driverValue(d)
 }
 
 // Scan - implements db driver method for auto unmarshal
-func (r *Details) Scan(src interface{}) error {
-	return driveScan(src, r)
+func (d *Details) Scan(src interface{}) error {
+	return driveScan(src, d)
 }

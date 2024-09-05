@@ -130,7 +130,7 @@ func parseEVMChain(value interface{}) ([]EVMChain, error) {
 			return nil, errors.Wrap(err, "failed to determine chain ID")
 		}
 		chain.SubmitterAddress = crypto.PubkeyToAddress(chain.SubmitterPrivateKey.PublicKey)
-		chainWithId := EVMChain{
+		chainWithID := EVMChain{
 			Name:                chain.Name,
 			ContractAddress:     chain.ContractAddress,
 			SubmitterPrivateKey: chain.SubmitterPrivateKey,
@@ -140,7 +140,7 @@ func parseEVMChain(value interface{}) ([]EVMChain, error) {
 			AllowResubmit:       chain.AllowResubmit,
 			ChainID:             chainID,
 		}
-		chains[idx] = chainWithId
+		chains[idx] = chainWithID
 	}
 
 	return chains, nil

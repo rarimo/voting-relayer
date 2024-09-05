@@ -8,7 +8,6 @@ type ResourceType string
 
 // List of ResourceType
 const (
-	OPERATION        ResourceType = "operation"
-	SEND_TRANSACTION ResourceType = "send_transaction"
-	TRANSACTION      ResourceType = "transaction"
+	OPERATION   ResourceType = "operation"
+	TRANSACTION ResourceType = "transaction"
 )

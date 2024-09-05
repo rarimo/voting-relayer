@@ -2,13 +2,14 @@ package ingester
 
 import (
 	"context"
+
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/rarimo/rarimo-core/x/rarimocore/crypto/pkg"
 	rarimocore "github.com/rarimo/rarimo-core/x/rarimocore/types"
 	"github.com/rarimo/voting-relayer/internal/config"
 	"github.com/rarimo/voting-relayer/internal/data"
-	"github.com/rarimo/voting-relayer/internal/state_transitor/core/passport_root_update"
+	passportrootupdate "github.com/rarimo/voting-relayer/internal/state_transitor/core/passport_root_update"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
@@ -17,7 +18,7 @@ type stateIngester struct {
 	log        *logan.Entry
 	rarimocore rarimocore.QueryClient
 	storage    data.StateQ
-	core       *passport_root_update.Core
+	core       *passportrootupdate.Core
 }
 
 var _ Processor = &stateIngester{}
@@ -26,7 +27,7 @@ func NewPassportRootIngester(cfg config.Config, q data.StateQ) Processor {
 	return &stateIngester{
 		log:        cfg.Log(),
 		rarimocore: rarimocore.NewQueryClient(cfg.Cosmos()),
-		core:       passport_root_update.NewCore(cfg),
+		core:       passportrootupdate.NewCore(cfg),
 		storage:    q,
 	}
 }
@@ -110,8 +111,8 @@ func (s *stateIngester) Process(
 		for chain, txHash := range processedOperations {
 			_, err = s.storage.Insert(
 				data.State{
-					ChainId:     chain,
-					OperationId: operation.Operation.Index,
+					ChainID:     chain,
+					OperationID: operation.Operation.Index,
 					TxHash:      txHash,
 					Event:       operation.Operation.OperationType.String(),
 					Proof:       hexutil.Encode(proof.Proof),

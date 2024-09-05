@@ -2,7 +2,6 @@ package config
 
 import (
 	"github.com/tendermint/tendermint/rpc/client/http"
-	_ "github.com/tendermint/tendermint/rpc/client/http"
 	"gitlab.com/distributed_lab/figure/v3"
 	"gitlab.com/distributed_lab/kit/comfig"
 	"gitlab.com/distributed_lab/kit/kv"

@@ -1,7 +1,9 @@
-package passport_root_update
+package passportrootupdate
 
 import (
 	"context"
+	"math/big"
+
 	"github.com/ava-labs/subnet-evm/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -14,7 +16,6 @@ import (
 	registrationsmtreplicator "github.com/rarimo/voting-relayer/pkg/contracts/passport"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
-	"math/big"
 )
 
 var (

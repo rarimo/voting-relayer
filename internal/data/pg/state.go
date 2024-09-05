@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"github.com/fatih/structs"
 	"github.com/rarimo/voting-relayer/internal/data"
 

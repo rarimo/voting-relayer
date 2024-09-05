@@ -1,8 +1,9 @@
 package requests
 
 import (
-	"github.com/go-chi/chi"
 	"net/http"
+
+	"github.com/go-chi/chi"
 )
 
 type GetOperationByRootRequest struct {

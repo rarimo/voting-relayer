@@ -7,12 +7,19 @@ servers:
   - url: 'https://api.demo.tokend.io'
     description: TokenD Developer Environment
 paths:
-  /integrations/registration-relayer/v1/operation:
+  '/integrations/registration-relayer/v1/operation/{root}':
+    parameters:
+      - name: root
+        in: path
+        description: Opration identifier
+        required: true
+        schema:
+          type: string
     get:
       tags:
-        - lastOperation
-      summary: Get last operation
-      operationId: getLastOperation
+        - OperationByRoot
+      summary: Operation by root
+      operationId: getOperationInfoByRoot
       responses:
         '200':
           description: Success
@@ -36,19 +43,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Errors'
-  '/integrations/registration-relayer/v1/operation/{root}':
-    parameters:
-      - name: root
-        in: path
-        description: Opration identifier
-        required: true
-        schema:
-          type: string
+  /integrations/registration-relayer/v1/operation/latest:
     get:
       tags:
-        - OperationByRoot
-      summary: Operation by root
-      operationId: getOperationInfoByRoot
+        - lastOperation
+      summary: Get last operation
+      operationId: getLastOperation
       responses:
         '200':
           description: Success

@@ -12,13 +12,24 @@
     }
   ],
   "paths": {
-    "/integrations/registration-relayer/v1/operation": {
+    "/integrations/registration-relayer/v1/operation/{root}": {
+      "parameters": [
+        {
+          "name": "root",
+          "in": "path",
+          "description": "Opration identifier",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
       "get": {
         "tags": [
-          "lastOperation"
+          "OperationByRoot"
         ],
-        "summary": "Get last operation",
-        "operationId": "getLastOperation",
+        "summary": "Operation by root",
+        "operationId": "getOperationInfoByRoot",
         "responses": {
           "200": {
             "description": "Success",
@@ -59,24 +70,13 @@
         }
       }
     },
-    "/integrations/registration-relayer/v1/operation/{root}": {
-      "parameters": [
-        {
-          "name": "root",
-          "in": "path",
-          "description": "Opration identifier",
-          "required": true,
-          "schema": {
-            "type": "string"
-          }
-        }
-      ],
+    "/integrations/registration-relayer/v1/operation/latest": {
       "get": {
         "tags": [
-          "OperationByRoot"
+          "lastOperation"
         ],
-        "summary": "Operation by root",
-        "operationId": "getOperationInfoByRoot",
+        "summary": "Get last operation",
+        "operationId": "getLastOperation",
         "responses": {
           "200": {
             "description": "Success",

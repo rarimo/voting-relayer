@@ -3,7 +3,7 @@
 ## Description
 
 Relayer service that makes calls to the smart contracts. Now it is used to work with such endpoints:
-  - `/integrations/voting-relayer/v1/register` - it takes calldata in hex encoided format from Rarime mobile applications and makes call to the smart contract.
+  - POST `/integrations/voting-relayer/v1/register` - it takes calldata in hex encoided format from Rarime mobile applications and makes call to the smart contract.
 
     Request body example:
     ```json
@@ -14,6 +14,46 @@ Relayer service that makes calls to the smart contracts. Now it is used to work 
       }
     }
     ```
+
+  - GET `/integrations/voting-relayer/v1/operations/latest`  - it returnes info about latest transited root
+    Response body example 
+
+    ```json
+    {
+       "data": {
+       "id": "",
+       "type": "",
+       "attributes": {
+          "block_height": 0,
+          "destination_chain": "",
+          "operation_id": "",
+          "proof": "",
+          "tx_hash": ""
+       }
+    },
+    "included": []
+    }
+    ```
+
+  - GET `/integrations/voting-relayer/v1/operations/{root}`  - it returnes info about transited root, where root is lower case hex string with 0x prefix
+    Response body example
+
+     ```json
+     {
+        "data": {
+        "id": "",
+        "type": "",
+        "attributes": {
+           "block_height": 0,
+           "destination_chain": "",
+           "operation_id": "",
+           "proof": "",
+           "tx_hash": ""
+        }
+     },
+     "included": []
+     }
+     ```
 
 ## Install
 

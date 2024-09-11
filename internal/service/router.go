@@ -26,7 +26,7 @@ func (s *service) router() chi.Router {
 			})
 			r.Route("/operations", func(r chi.Router) {
 				r.Get("/{root}", handlers.GetOperationByRoot)
-				r.Get("/", handlers.GetLastOperation)
+				r.Get("/latest", handlers.GetLastOperation)
 			})
 		})
 	})

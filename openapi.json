@@ -17,7 +17,7 @@
         {
           "name": "root",
           "in": "path",
-          "description": "Opration identifier",
+          "description": "Passport root",
           "required": true,
           "schema": {
             "type": "string"
@@ -28,8 +28,9 @@
         "tags": [
           "OperationByRoot"
         ],
-        "summary": "Operation by root",
-        "operationId": "getOperationInfoByRoot",
+        "summary": "Operation info by passport root",
+        "description": "Retrieve information about the transited passport root",
+        "operationId": "GetOperationInfoByRoot",
         "responses": {
           "200": {
             "description": "Success",
@@ -52,7 +53,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Errors"
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
                 }
               }
             }
@@ -62,7 +73,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Errors"
+                  "$ref": "#/components/schemas/InternalError"
                 }
               }
             }
@@ -73,10 +84,11 @@
     "/integrations/registration-relayer/v1/operation/latest": {
       "get": {
         "tags": [
-          "lastOperation"
+          "GetLastOperationInfo"
         ],
-        "summary": "Get last operation",
-        "operationId": "getLastOperation",
+        "summary": "Get last operation info",
+        "description": "Retrieve information about the last passport root",
+        "operationId": "GetLastOperation",
         "responses": {
           "200": {
             "description": "Success",
@@ -99,7 +111,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Errors"
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
                 }
               }
             }
@@ -109,7 +131,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Errors"
+                  "$ref": "#/components/schemas/InternalError"
                 }
               }
             }
@@ -163,7 +185,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Errors"
+                  "$ref": "#/components/schemas/BadRequestError"
                 }
               }
             }
@@ -173,7 +195,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Errors"
+                  "$ref": "#/components/schemas/InternalError"
                 }
               }
             }
@@ -184,56 +206,121 @@
   },
   "components": {
     "schemas": {
-      "Errors": {
-        "description": "Standard JSON:API error",
+      "BadRequestError": {
         "type": "object",
         "required": [
-          "errors"
+          "title",
+          "status",
+          "code"
         ],
         "properties": {
-          "errors": {
-            "type": "array",
-            "description": "Non empty array of errors occurred during request processing",
-            "items": {
-              "type": "object",
-              "required": [
-                "title",
-                "status"
-              ],
-              "properties": {
-                "title": {
-                  "type": "string",
-                  "description": "Title is a short, human-readable summary of the problem",
-                  "example": "Bad Request"
-                },
-                "detail": {
-                  "type": "string",
-                  "description": "Detail is a human-readable explanation specific to this occurrence of the problem",
-                  "example": "Request body was expected"
-                },
-                "status": {
-                  "type": "integer",
-                  "description": "Status is the HTTP status code applicable to this problem",
-                  "example": 400,
-                  "enum": [
-                    400,
-                    401,
-                    403,
-                    404,
-                    409,
-                    429,
-                    500
-                  ]
-                }
-              }
+          "title": {
+            "type": "string",
+            "description": "Short, human-readable summary of the problem",
+            "example": "Bad Request"
+          },
+          "detail": {
+            "type": "string",
+            "description": "Human-readable explanation specific to this occurrence of the problem",
+            "example": "Your request was invalid in some way."
+          },
+          "status": {
+            "type": "integer",
+            "description": "HTTP status code applicable to this problem",
+            "enum": [
+              400
+            ]
+          },
+          "code": {
+            "type": "string",
+            "description": "Application-specific error code, expressed as a string value",
+            "enum": [
+              "bad_request",
+              "bad_request_data"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "description": "Object containing non-standard meta-information about the error",
+            "example": {
+              "error": "failed to verify issuer: failed to create a request: invalid url",
+              "error_info": "Issuer check failed."
             }
+          }
+        }
+      },
+      "InternalError": {
+        "type": "object",
+        "required": [
+          "title",
+          "status",
+          "code"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Short, human-readable summary of the problem",
+            "example": "Internal Error"
+          },
+          "detail": {
+            "type": "string",
+            "description": "Human-readable explanation specific to this occurrence of the problem",
+            "example": "Some internal error occurred. Please report this error to service maintainers."
+          },
+          "status": {
+            "type": "integer",
+            "description": "HTTP status code applicable to this problem",
+            "enum": [
+              500
+            ]
+          },
+          "code": {
+            "type": "string",
+            "description": "Application-specific error code, expressed as a string value",
+            "enum": [
+              "internal_error"
+            ]
+          }
+        }
+      },
+      "NotFoundError": {
+        "type": "object",
+        "required": [
+          "title",
+          "status",
+          "code"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Short, human-readable summary of the problem",
+            "example": "Not Found"
+          },
+          "detail": {
+            "type": "string",
+            "description": "Human-readable explanation specific to this occurrence of the problem",
+            "example": "The requested resource could not be found."
+          },
+          "status": {
+            "type": "integer",
+            "description": "HTTP status code applicable to this problem",
+            "enum": [
+              404
+            ]
+          },
+          "code": {
+            "type": "string",
+            "description": "Application-specific error code, expressed as a string value",
+            "enum": [
+              "not_found"
+            ]
           }
         }
       },
       "Operation": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/operationKey"
+            "$ref": "#/components/schemas/OperationKey"
           },
           {
             "type": "object",
@@ -275,7 +362,7 @@
                   "block_height": {
                     "type": "int",
                     "format": "uint64",
-                    "example": "234234"
+                    "example": 234234
                   }
                 }
               }

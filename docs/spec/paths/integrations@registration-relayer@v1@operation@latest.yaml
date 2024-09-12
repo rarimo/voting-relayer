@@ -1,8 +1,9 @@
 get:
   tags:
-    - lastOperation
-  summary: Get last operation
-  operationId: getLastOperation
+    - GetLastOperationInfo
+  summary: Get last operation info
+  description: Retrieve information about the last passport root
+  operationId: GetLastOperation
   responses:
     200:
       description: Success
@@ -19,10 +20,16 @@ get:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Errors'
+            $ref: '#/components/schemas/BadRequestError'
+    404:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotFoundError'
     500:
       description: Internal Error
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Errors'
+            $ref: '#/components/schemas/InternalError'

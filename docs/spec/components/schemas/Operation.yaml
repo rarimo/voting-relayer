@@ -1,5 +1,5 @@
 allOf:
-  - $ref: '#/components/schemas/operationKey'
+  - $ref: '#/components/schemas/OperationKey'
   - type: object
     required: [relationships, attributes]
     properties:
@@ -31,4 +31,4 @@ allOf:
           block_height:
             type: int
             format: uint64
-            example: "234234"
+            example: 234234
